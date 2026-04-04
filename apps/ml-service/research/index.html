@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Fraud Detection</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+<h1>Credit Card Fraud Detection</h1>
+
+<form method="POST" enctype="multipart/form-data">
+
+<input type="file" name="file">
+
+<button type="submit">Predict</button>
+
+</form>
+
+{% if prediction %}
+
+<h2>Prediction Result</h2>
+
+<p>{{ prediction }}</p>
+
+{% endif %}
+
+</body>
+</html>

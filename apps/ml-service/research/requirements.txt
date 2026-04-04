@@ -1,0 +1,9 @@
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+imbalanced-learn
+river
+
+ARF = Ensemble of Adaptive Hoeffding Trees + Bagging + Drift Detection

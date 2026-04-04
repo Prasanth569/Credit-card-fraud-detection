@@ -1,0 +1,79 @@
+/* Page background */
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background-image: url("data/img.webp");
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+}
+
+/* Title header */
+h1 {
+    text-align: center;
+    color: white;
+    font-size: 50px;
+    padding: 20px;
+    background-color: rgba(0,0,0,0.6);
+}
+
+/* Form container */
+form {
+    width: 500px;
+    margin: 80px auto;
+    padding: 30px;
+    background-color: rgba(255,255,255,0.9);
+    border-radius: 10px;
+    text-align: center;
+}
+
+/* Upload label */
+#upload {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* File input */
+input[type="file"] {
+    margin-top: 15px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Submit button */
+#submit {
+    margin-top: 20px;
+    padding: 12px 25px;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Button hover */
+#submit:hover {
+    background-color: #45a049;
+}
+
+/* Result box */
+#result {
+    width: 500px;
+    margin: auto;
+    padding: 20px;
+    font-size: 20px;
+    text-align: center;
+    background-color: rgba(255,255,255,0.9);
+    border-radius: 10px;
+}
+
+/* Result list */
+li {
+    list-style: none;
+    color: #1a237e;
+    font-weight: bold;
+    margin: 10px 0;
+}
