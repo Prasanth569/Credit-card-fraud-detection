@@ -1,0 +1,6 @@
+﻿src/components/dashboard/DistributionChart.tsx(23,9): error TS6133: 'fraudOffset' is declared but its value is never read.
+src/components/dashboard/StatsGrid.tsx(2,10): error TS6133: 'getStats' is declared but its value is never read.
+src/components/dashboard/VolumeTrend.tsx(9,9): error TS6133: 'maxCount' is declared but its value is never read.
+src/contexts/AuthContext.tsx(6,3): error TS1484: 'ReactNode' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/contexts/AuthContext.tsx(9,3): error TS1484: 'User' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.
+src/contexts/AuthContext.tsx(16,3): error TS1484: 'UserCredential' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.

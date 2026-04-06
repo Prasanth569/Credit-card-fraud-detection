@@ -1,19 +1,15 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAyZA_qcu7izD1Mf3OC9y7azYxokEEDIZk",
-  authDomain: "credit-card-fraud-detect-a17e4.firebaseapp.com",
-  projectId: "credit-card-fraud-detect-a17e4",
-  storageBucket: "credit-card-fraud-detect-a17e4.firebasestorage.app",
-  messagingSenderId: "699761425270",
-  appId: "1:699761425270:web:75cec0f3b0a5e7cbecd857",
-  measurementId: "G-8B6RJKE78K"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
 export const auth = getAuth(app);

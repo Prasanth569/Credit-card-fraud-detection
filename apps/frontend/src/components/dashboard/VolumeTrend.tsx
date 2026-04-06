@@ -6,7 +6,6 @@ interface Props {
 
 export default function VolumeTrend({ stats }: Props) {
   const trend = stats?.hourlyTrend ?? [];
-  const maxCount = Math.max(...trend.map((t) => t.count), 1);
 
   // Fallback demo data
   const data =

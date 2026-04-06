@@ -1,5 +1,6 @@
 import { ENUMS } from "@enums/index";
 import axios from "axios";
+import { auth } from "../config/firebase";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -7,6 +8,28 @@ const api = axios.create({
   baseURL: API_URL,
   timeout: 15000,
 });
+
+// Attach Firebase token
+api.interceptors.request.use(async (config) => {
+  const user = auth.currentUser;
+  if (user) {
+    const token = await user.getIdToken();
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Handle global auth errors (e.g. token expired/revoked)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Optional: Clear any extra state, then redirect to login.
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

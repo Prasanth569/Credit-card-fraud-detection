@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 const navItems = [
   { path: "/", icon: "dashboard", label: "Dashboard" },
@@ -9,6 +10,10 @@ const navItems = [
 
 export default function Sidebar() {
   const location = useLocation();
+  const { currentUser } = useAuth();
+  
+  const userInitial = currentUser?.email ? currentUser.email.charAt(0).toUpperCase() : "U";
+  const userName = currentUser?.displayName || currentUser?.email?.split('@')[0] || "User";
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col bg-white border-r border-outline-variant/40 z-30">
@@ -69,13 +74,17 @@ export default function Sidebar() {
       {/* User Profile */}
       <div className="px-4 py-4 border-t border-outline-variant/30">
         <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-neutral transition-colors cursor-pointer">
-          <div className="w-9 h-9 rounded-full bg-primary-light flex items-center justify-center flex-shrink-0">
-            <span className="text-primary font-bold text-sm font-headline">AR</span>
-          </div>
+          {currentUser?.photoURL ? (
+            <img src={currentUser.photoURL} alt="Profile" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-primary-light flex items-center justify-center flex-shrink-0">
+              <span className="text-primary font-bold text-sm font-headline">{userInitial}</span>
+            </div>
+          )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-on-surface font-headline truncate">Alex Rivera</p>
+            <p className="text-sm font-bold text-on-surface font-headline truncate">{userName}</p>
             <p className="text-[10px] text-on-surface-variant uppercase tracking-wider truncate">
-              Lead Architect
+              {currentUser?.email || "Lead Architect"}
             </p>
           </div>
           <span className="material-symbols-outlined text-on-surface-variant text-[18px]">

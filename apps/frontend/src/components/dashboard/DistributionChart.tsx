@@ -20,7 +20,6 @@ export default function DistributionChart({ stats }: Props) {
   const fraudDash = (fraudPct / 100) * circ;
 
   // offsets: fraud starts after legit segment
-  const fraudOffset = circ - legitDash;
 
   return (
     <div className="card p-5 animate-fade-in">
