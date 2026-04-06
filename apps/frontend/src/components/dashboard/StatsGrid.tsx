@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getStats, type StatsData } from "../../api/predict";
+import type { StatsData } from "../../api/predict";
 
 interface StatCardProps {
   icon: string;

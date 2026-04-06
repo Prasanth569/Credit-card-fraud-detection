@@ -6,10 +6,15 @@ import { transactionRoutes } from "./routes/transactions";
 import { statsRoutes } from "./routes/stats";
 import { settingsRoutes } from "./routes/settings";
 
+import { authMiddleware } from "./middleware/auth";
+
 const fastify = Fastify({ logger: true });
 
 // Register CORS
 fastify.register(cors, { origin: "*" });
+
+// Auth Middleware (global)
+fastify.addHook("preHandler", authMiddleware);
 
 // Health
 fastify.get("/", async () => ({ message: "Fraud Detection API running 🚀" }));

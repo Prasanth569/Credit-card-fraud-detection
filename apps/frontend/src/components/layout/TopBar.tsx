@@ -1,11 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function TopBar() {
   const [search, setSearch] = useState("");
   const [hasNotif, setHasNotif] = useState(true);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
+  const { currentUser, logout } = useAuth();
 
   // Keyboard shortcut: Ctrl+K to focus search
   useEffect(() => {
@@ -27,6 +30,18 @@ export default function TopBar() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Failed to log out", error);
+    }
+  };
+
+  const userInitial = currentUser?.email ? currentUser.email.charAt(0).toUpperCase() : "U";
+  const userName = currentUser?.displayName || currentUser?.email?.split('@')[0] || "User";
+
   return (
     <header className="fixed top-0 left-64 right-0 h-14 z-20 bg-white/90 glass border-b border-outline-variant/30 flex items-center px-6 gap-4">
       {/* Search */}
@@ -46,7 +61,7 @@ export default function TopBar() {
         </div>
       </form>
 
-      <div className="flex items-center gap-3 ml-auto">
+      <div className="flex items-center gap-3 ml-auto relative">
         {/* Model version badge */}
         <span className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-primary-light rounded-full text-[10px] font-bold text-primary uppercase tracking-wider">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -70,16 +85,42 @@ export default function TopBar() {
         </button>
 
         {/* Profile */}
-        <div className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-neutral transition-colors cursor-pointer">
-          <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
-            <span className="text-white font-bold text-[11px] font-headline">AR</span>
+        <div className="relative">
+          <div 
+            className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-neutral transition-colors cursor-pointer"
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
+          >
+            {currentUser?.photoURL ? (
+              <img src={currentUser.photoURL} alt="Profile" className="w-7 h-7 rounded-full object-cover" />
+            ) : (
+              <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
+                <span className="text-white font-bold text-[11px] font-headline">{userInitial}</span>
+              </div>
+            )}
+            <span className="hidden sm:block text-sm font-semibold text-on-surface font-headline">
+              {userName}
+            </span>
+            <span className="material-symbols-outlined text-on-surface-variant text-[16px]">
+              expand_more
+            </span>
           </div>
-          <span className="hidden sm:block text-sm font-semibold text-on-surface font-headline">
-            Alex Rivera
-          </span>
-          <span className="material-symbols-outlined text-on-surface-variant text-[16px]">
-            expand_more
-          </span>
+
+          {/* Profile Dropdown */}
+          {showProfileMenu && (
+            <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-outline-variant/40 rounded-lg shadow-lg overflow-hidden py-1">
+              <div className="px-4 py-2 border-b border-outline-variant/20 mb-1">
+                <p className="text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Signed in as</p>
+                <p className="text-sm text-on-surface font-medium truncate">{currentUser?.email}</p>
+              </div>
+              <button 
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-2 text-sm text-danger hover:bg-danger/5 flex items-center gap-2 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[18px]">logout</span>
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>
