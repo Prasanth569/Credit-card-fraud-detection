@@ -1,12 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   getTransactions,
-  batchPredict,
   type TransactionsResponse,
-  type BatchResult,
 } from "../api/predict";
 import { useSearchParams } from "react-router-dom";
 import { ENUMS } from "@enums/index";
+import BatchUploadPanel from "../components/dashboard/BatchUploadPanel";
 
 function DecisionBadge({ decision }: { decision: string }) {
   if (decision === ENUMS.Common.Decision.ALLOW) return <span className="badge-allow">{decision}</span>;
@@ -21,11 +20,6 @@ export default function Transactions() {
   const [filter, setFilter] = useState(searchParams.get("decision") || "ALL");
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [page, setPage] = useState(1);
-
-  // Batch upload
-  const [batchResult, setBatchResult] = useState<BatchResult | null>(null);
-  const [batchLoading, setBatchLoading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -54,41 +48,6 @@ export default function Transactions() {
     fetchData();
   };
 
-  const handleCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setBatchLoading(true);
-    setBatchResult(null);
-
-    try {
-      const text = await file.text();
-      const lines = text.trim().split("\n");
-      const header = lines[0].toLowerCase();
-      const amountIdx = header.split(",").findIndex((h) => h.trim() === "amount");
-      const timeIdx = header.split(",").findIndex((h) => h.trim() === "time");
-
-      const transactions = lines.slice(1).map((line) => {
-        const cols = line.split(",");
-        return {
-          amount: parseFloat(cols[amountIdx >= 0 ? amountIdx : 0]) || 0,
-          time: parseFloat(cols[timeIdx >= 0 ? timeIdx : 1]) || 0,
-        };
-      }).filter((t) => t.amount > 0);
-
-      if (transactions.length === 0) throw new Error("No valid transactions in CSV");
-
-      const result = await batchPredict(transactions.slice(0, 500));
-      setBatchResult(result);
-      fetchData();
-    } catch (err: any) {
-      alert(err?.message || "CSV upload failed");
-    } finally {
-      setBatchLoading(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
-  };
-
   const formatDate = (iso?: string) =>
     iso
       ? new Date(iso).toLocaleString("en-US", {
@@ -113,56 +72,11 @@ export default function Transactions() {
             Browse, search, and analyze all processed transactions
           </p>
         </div>
-
-        {/* CSV Upload */}
-        <div className="flex items-center gap-3">
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".csv"
-            onChange={handleCSV}
-            className="hidden"
-            id="csv-upload"
-          />
-          <label
-            htmlFor="csv-upload"
-            className={`flex items-center gap-2 px-4 py-2.5 border border-outline-variant/50 rounded-xl
-              text-sm font-semibold cursor-pointer transition-all
-              ${batchLoading ? "opacity-60 pointer-events-none" : "hover:bg-neutral text-on-surface-variant"}`}
-          >
-            <span className="material-symbols-outlined text-[18px]">upload_file</span>
-            {batchLoading ? "Processing…" : "Upload CSV"}
-          </label>
-        </div>
       </div>
 
-      {/* Batch result banner */}
-      {batchResult && (
-        <div className="card p-5 animate-fade-in border-l-4 border-primary">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="material-symbols-outlined text-primary">check_circle</span>
-            <h3 className="font-bold font-headline text-on-surface">
-              Batch Processing Complete
-            </h3>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
-            {[
-              { label: "Processed", value: batchResult.processed, color: "text-on-surface" },
-              { label: "Legit", value: batchResult.legitCount, color: "text-success" },
-              { label: "Flagged", value: batchResult.flagCount, color: "text-warning" },
-              { label: "Fraud", value: batchResult.fraudCount, color: "text-danger" },
-              { label: "Fraud Rate", value: `${batchResult.fraudRate}%`, color: "text-danger" },
-            ].map(({ label, value, color }) => (
-              <div key={label}>
-                <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">
-                  {label}
-                </p>
-                <p className={`text-xl font-black font-headline ${color}`}>{value}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Batch Upload Panel */}
+      <BatchUploadPanel onComplete={() => fetchData()} />
+
 
       {/* Filters */}
       <div className="card p-4">

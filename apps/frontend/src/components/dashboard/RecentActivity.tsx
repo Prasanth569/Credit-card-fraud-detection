@@ -121,7 +121,7 @@ export default function RecentActivity({ refreshKey }: Props) {
                   </td>
                   <td className="px-6 py-3.5">
                     <span className="font-bold text-sm text-on-surface">
-                      ${txn.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      ${(txn.amount || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                     </span>
                   </td>
                   <td className="px-6 py-3.5">
@@ -130,7 +130,7 @@ export default function RecentActivity({ refreshKey }: Props) {
                     </span>
                   </td>
                   <td className="px-6 py-3.5">
-                    <ProbBar probability={txn.probability} />
+                    <ProbBar probability={txn.probability || 0} />
                   </td>
                   <td className="px-6 py-3.5">
                     <DecisionBadge decision={txn.decision} />

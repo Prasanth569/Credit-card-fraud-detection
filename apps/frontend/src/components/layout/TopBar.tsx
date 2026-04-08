@@ -1,14 +1,19 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useAlerts } from "../../contexts/AlertContext";
+import NotificationDropdown from "./NotificationDropdown";
 
 export default function TopBar() {
   const [search, setSearch] = useState("");
-  const [hasNotif, setHasNotif] = useState(true);
+  const [showNotif, setShowNotif] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
   const { currentUser, logout } = useAuth();
+  const { unreadCount } = useAlerts();
 
   // Keyboard shortcut: Ctrl+K to focus search
   useEffect(() => {
@@ -20,6 +25,20 @@ export default function TopBar() {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  // Click-outside to close dropdowns
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setShowNotif(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -70,23 +89,29 @@ export default function TopBar() {
 
         <div className="h-5 w-px bg-outline-variant/40" />
 
-        {/* Notifications */}
-        <button
-          className="relative p-2 rounded-lg hover:bg-neutral transition-colors"
-          onClick={() => setHasNotif(false)}
-          title="Notifications"
-        >
-          <span className="material-symbols-outlined text-on-surface-variant text-[20px]">
-            notifications
-          </span>
-          {hasNotif && (
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full border-2 border-white" />
-          )}
-        </button>
+        {/* Notifications Bell */}
+        <div ref={notifRef} className="relative">
+          <button
+            className="relative p-2 rounded-lg hover:bg-neutral transition-colors"
+            onClick={() => setShowNotif(!showNotif)}
+            title="Notifications"
+            id="notification-bell"
+          >
+            <span className="material-symbols-outlined text-on-surface-variant text-[20px]">
+              notifications
+            </span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 bg-danger text-white text-[9px] font-bold rounded-full border-2 border-white animate-fade-in">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </button>
+          <NotificationDropdown isOpen={showNotif} onClose={() => setShowNotif(false)} />
+        </div>
 
         {/* Profile */}
-        <div className="relative">
-          <div 
+        <div ref={profileRef} className="relative">
+          <div
             className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-neutral transition-colors cursor-pointer"
             onClick={() => setShowProfileMenu(!showProfileMenu)}
           >
@@ -107,12 +132,12 @@ export default function TopBar() {
 
           {/* Profile Dropdown */}
           {showProfileMenu && (
-            <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-outline-variant/40 rounded-lg shadow-lg overflow-hidden py-1">
+            <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-outline-variant/40 rounded-lg shadow-lg overflow-hidden py-1 animate-fade-in">
               <div className="px-4 py-2 border-b border-outline-variant/20 mb-1">
                 <p className="text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Signed in as</p>
                 <p className="text-sm text-on-surface font-medium truncate">{currentUser?.email}</p>
               </div>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="w-full text-left px-4 py-2 text-sm text-danger hover:bg-danger/5 flex items-center gap-2 transition-colors"
               >

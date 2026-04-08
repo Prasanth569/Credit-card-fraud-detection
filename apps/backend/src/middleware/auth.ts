@@ -13,7 +13,7 @@ declare module "fastify" {
 }
 
 // Routes that don't require authentication
-const PUBLIC_ROUTES = ["/", "/health"];
+const PUBLIC_ROUTES = ["/", "/health", "/simulation/simulate"];
 
 export async function authMiddleware(
   request: FastifyRequest,
