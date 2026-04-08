@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { getStats, type StatsData } from "../api/predict";
+import { getStats, getModelLogs, type StatsData, type ModelLog } from "../api/predict";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend,
+  PieChart, Pie, Cell, Legend, LineChart, Line
 } from "recharts";
 
 const COLORS = {
@@ -15,13 +15,17 @@ const COLORS = {
 
 export default function Analytics() {
   const [stats, setStats] = useState<StatsData | null>(null);
+  const [logs, setLogs] = useState<ModelLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getStats()
-      .then(setStats)
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.all([
+      getStats().catch(() => null),
+      getModelLogs().catch(() => [])
+    ]).then(([statsRes, logsRes]) => {
+      setStats(statsRes);
+      setLogs(logsRes || []);
+    }).finally(() => setLoading(false));
   }, []);
 
   const modelData = stats?.modelComparison ?? [
@@ -48,6 +52,23 @@ export default function Analytics() {
         { label: "14:00", count: 220 },
         { label: "15:00", count: 310 },
       ];
+
+  // Map model logs to chronological accuracy trend
+  const trendData = logs.length > 0
+    ? [...logs].sort((a, b) => new Date(a.trainedAt).getTime() - new Date(b.trainedAt).getTime())
+        .map(l => ({
+          date: new Date(l.trainedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          accuracy: l.accuracy,
+          f1: l.f1Score,
+          version: l.modelVersion
+        }))
+    : [
+      { date: "Mar 1", accuracy: 94.2, f1: 91.5 },
+      { date: "Mar 8", accuracy: 95.1, f1: 92.8 },
+      { date: "Mar 15", accuracy: 96.0, f1: 94.1 },
+      { date: "Mar 22", accuracy: 97.2, f1: 96.0 },
+      { date: "Mar 29", accuracy: 97.9, f1: 96.8 },
+    ];
 
   // Confusion matrix (simulated from system design)
   const confMatrix = {
@@ -246,6 +267,33 @@ export default function Analytics() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Model Performance Trend */}
+        <div className="card p-6 animate-fade-in lg:col-span-2">
+          <h3 className="text-sm font-black font-headline text-on-surface mb-4">
+            Model Performance Over Time (Accuracy & F1 Score)
+          </h3>
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart data={trendData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#EBECF0" vertical={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#42526E" }} tickLine={false} axisLine={false} />
+              <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10, fill: "#42526E" }} tickLine={false} axisLine={false} />
+              <Tooltip
+                contentStyle={{
+                  borderRadius: "8px",
+                  border: "1px solid #DFE1E6",
+                  boxShadow: "0 4px 12px rgba(9,30,66,0.1)",
+                  fontSize: "12px",
+                }}
+                formatter={(val: any, name: any) => [`${Number(val).toFixed(2)}%`, String(name)]}
+                labelStyle={{ fontWeight: "bold", color: "#172B4D", marginBottom: "4px" }}
+              />
+              <Legend iconType="circle" wrapperStyle={{ fontSize: "11px", fontWeight: 600, paddingTop: "10px" }} />
+              <Line type="monotone" dataKey="accuracy" name="Accuracy" stroke={COLORS.primary} strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="f1" name="F1 Score" stroke={COLORS.success} strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </div>

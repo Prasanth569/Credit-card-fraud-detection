@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import axios from "axios";
 import { Transaction, ITransaction } from "../models/Transaction";
+import { addAlertJob } from "../queues/alertQueue";
 import { preprocessTransaction, ValidationError } from "../services/preprocess";
 import { extractFeatures } from "../services/feature";
 import { evaluateDecision } from "../services/decision";
@@ -128,6 +129,13 @@ export async function predictRoutes(fastify: FastifyInstance) {
           modelVersion: mlResponse.model_version,
           features,
         })) as ITransaction;
+
+        // Enqueue transaction to alertQueue for asynchronous evaluation
+        try {
+          await addAlertJob(transaction);
+        } catch (err) {
+          fastify.log.error(err, "Failed to enqueue transaction to alertQueue:");
+        }
 
         return reply.code(200).send({
           txnId,
