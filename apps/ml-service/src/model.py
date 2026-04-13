@@ -12,6 +12,9 @@ Falls back to scikit-learn RandomForest if river is unavailable.
 
 import time
 import logging
+import os
+import pickle
+import numpy as np
 from typing import List, Tuple, Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -56,8 +59,6 @@ class DWMAHTEnsemble:
     def _build_model(self):
         """Initialize the DWM + AHT ensemble by loading saved_model.pkl."""
         if RIVER_AVAILABLE:
-            import pickle
-            import os
             model_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "artifacts", "saved_model.pkl")
             try:
                 with open(model_path, "rb") as f:
@@ -85,29 +86,32 @@ class DWMAHTEnsemble:
 
     def _build_sklearn_fallback(self):
         """Build a sklearn RandomForest as fallback."""
-        from sklearn.ensemble import RandomForestClassifier
-        import numpy as np
+        try:
+            from sklearn.ensemble import RandomForestClassifier
 
-        self.model = RandomForestClassifier(
-            n_estimators=self.n_models,
-            max_depth=10,
-            random_state=self.seed,
-            class_weight="balanced",
-        )
-        # Pre-train with synthetic data to make it functional immediately
-        np.random.seed(self.seed)
-        n_samples = 1000
-        X_train = np.random.randn(n_samples, 30)  # 30 features
-        # Create imbalanced labels (98% legit, 2% fraud)
-        y_train = np.zeros(n_samples, dtype=int)
-        fraud_indices = np.random.choice(n_samples, size=int(n_samples * 0.02), replace=False)
-        # Make fraud samples have distinct patterns
-        X_train[fraud_indices] = X_train[fraud_indices] * 3 + 2
-        y_train[fraud_indices] = 1
+            self.model = RandomForestClassifier(
+                n_estimators=self.n_models,
+                max_depth=10,
+                random_state=self.seed,
+                class_weight="balanced",
+            )
+            # Pre-train with synthetic data to make it functional immediately
+            np.random.seed(self.seed)
+            n_samples = 1000
+            X_train = np.random.randn(n_samples, 30)  # 30 features
+            # Create imbalanced labels (98% legit, 2% fraud)
+            y_train = np.zeros(n_samples, dtype=int)
+            fraud_indices = np.random.choice(n_samples, size=int(n_samples * 0.02), replace=False)
+            # Make fraud samples have distinct patterns
+            X_train[fraud_indices] = X_train[fraud_indices] * 3 + 2
+            y_train[fraud_indices] = 1
 
-        self.model.fit(X_train, y_train)
-        self.is_trained = True
-        logger.info("sklearn fallback model trained with synthetic data")
+            self.model.fit(X_train, y_train)
+            self.is_trained = True
+            logger.info("sklearn fallback model trained with synthetic data")
+        except ImportError:
+            logger.error("scikit-learn not available for fallback model")
+            self.is_trained = False
 
     def predict(self, features: Dict[str, float]) -> Tuple[float, List[str]]:
         """
@@ -124,13 +128,28 @@ class DWMAHTEnsemble:
 
         if hasattr(self, 'models_dict') and self.models_dict:
             try:
-                prob_arf = self.arf.predict_proba_one(features).get(1, 0.0) if self.arf else 0.0
-                prob_dwm = self.dwm.predict_proba_one(features).get(1, 0.0) if self.dwm else 0.0
+                if self.arf:
+                    # river predict_proba_one might return a dict with np.int64 keys
+                    # we want probability of class 1 (fraud)
+                    prob_arf_dict = self.arf.predict_proba_one(features)
+                    prob_arf = prob_arf_dict.get(1, prob_arf_dict.get(np.int64(1), 0.0))
+                else:
+                    prob_arf = 0.0
+
+                if self.dwm:
+                    try:
+                        prob_dwm_dict = self.dwm.predict_proba_one(features)
+                        prob_dwm = prob_dwm_dict.get(1, prob_dwm_dict.get(np.int64(1), 0.0))
+                    except (NotImplementedError, AttributeError):
+                        # Fallback for VotingClassifier or other hard-voting ensembles
+                        prob_dwm = float(self.dwm.predict_one(features) or 0.0)
+                else:
+                    prob_dwm = 0.0
                 
                 # Hybrid ensemble average
                 probability = (prob_arf + prob_dwm) / 2.0
             except Exception as e:
-                logger.error(f"Inference error: {e}")
+                logger.error(f"Inference error in River block: {str(e)}", exc_info=True)
                 probability = self._heuristic_probability(features)
                 flags.append("model_inference_fallback")
         elif RIVER_AVAILABLE and hasattr(self, 'model'):
@@ -142,16 +161,24 @@ class DWMAHTEnsemble:
                 # Model hasn't seen enough data yet — use heuristic
                 probability = self._heuristic_probability(features)
                 flags.append("model_cold_start")
-        else:
-            import numpy as np
+        elif hasattr(self, 'model') and self.model:
             # Convert to array for sklearn
             feature_array = np.array([[features.get(f, 0.0) for f in FEATURE_NAMES]])
             try:
-                proba = self.model.predict_proba(feature_array)
-                probability = float(proba[0][1])
-            except Exception:
+                if hasattr(self.model, 'predict_proba'):
+                    proba = self.model.predict_proba(feature_array)
+                    probability = float(proba[0][1])
+                else:
+                    probability = self._heuristic_probability(features)
+                    flags.append("model_predict_fallback")
+            except Exception as e:
+                logger.error(f"Inference error in Sklearn block: {str(e)}")
                 probability = self._heuristic_probability(features)
                 flags.append("model_fallback")
+        else:
+            # Absolute fallback
+            probability = self._heuristic_probability(features)
+            flags.append("model_unavailable_heuristic")
 
         # Add contextual flags
         amount = features.get("Amount", 0)
@@ -173,9 +200,20 @@ class DWMAHTEnsemble:
         """Incrementally update the model with a new labeled sample."""
         if hasattr(self, 'models_dict') and self.models_dict:
             # Hybrid prediction calculation
-            prob_arf = self.arf.predict_proba_one(features).get(1, 0.0) if self.arf else 0.0
-            prob_dwm = self.dwm.predict_proba_one(features).get(1, 0.0) if self.dwm else 0.0
-            prediction = 1 if ((prob_arf + prob_dwm) / 2.0) > 0.5 else 0
+            try:
+                prob_arf_dict = self.arf.predict_proba_one(features) if self.arf else {}
+                prob_arf = prob_arf_dict.get(1, prob_arf_dict.get(np.int64(1), 0.0))
+                
+                try:
+                    prob_dwm_dict = self.dwm.predict_proba_one(features) if self.dwm else {}
+                    prob_dwm = prob_dwm_dict.get(1, prob_dwm_dict.get(np.int64(1), 0.0))
+                except (NotImplementedError, AttributeError):
+                    prob_dwm = float(self.dwm.predict_one(features) or 0.0)
+                    
+                prediction = 1 if ((prob_arf + prob_dwm) / 2.0) > 0.5 else 0
+            except Exception:
+                # Fallback to simple prediction
+                prediction = self.arf.predict_one(features) if self.arf else 0
 
             # Update metrics
             self.accuracy_metric.update(label, prediction)
@@ -259,8 +297,11 @@ class DWMAHTEnsemble:
 
     def get_ensemble_weights(self) -> Optional[List[float]]:
         """Return current ensemble learner weights."""
-        if RIVER_AVAILABLE and hasattr(self.model, "models"):
+        if RIVER_AVAILABLE and hasattr(self, 'model') and self.model and hasattr(self.model, "models"):
             return [1.0 / self.n_models] * self.n_models
+        # If we have arf/dwm instead
+        if hasattr(self, 'arf') and self.arf:
+            return [1.0] # Simplified weight for hybrid
         return None
 
 

@@ -21,7 +21,7 @@ export function AlertProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       const data = await getAlerts({ limit: 50 });
-      setAlerts(data);
+      setAlerts(data.items);
     } catch {
       // API unavailable – keep stale data
     } finally {

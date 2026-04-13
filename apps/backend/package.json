@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev -r tsconfig-paths/register src/server.ts",
-    "worker": "ts-node-dev -r tsconfig-paths/register src/workers/index.ts"
+    "worker": "ts-node-dev -r tsconfig-paths/register src/workers/index.ts",
+    "seed": "ts-node -r tsconfig-paths/register src/scripts/seed.ts"
   },
   "keywords": [],
   "author": "",

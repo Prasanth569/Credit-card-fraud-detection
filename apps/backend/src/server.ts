@@ -56,8 +56,9 @@ fastify.setErrorHandler((error: any, _request, reply) => {
 const start = async () => {
   try {
     await connectDB();
-    await fastify.listen({ port: 5000, host: "0.0.0.0" });
-    console.log("Server running on http://localhost:5000");
+    const port = Number(process.env.PORT) || 5000;
+    await fastify.listen({ port, host: "0.0.0.0" });
+    console.log(`Server running on http://localhost:${port}`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

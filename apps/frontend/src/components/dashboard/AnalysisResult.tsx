@@ -56,7 +56,7 @@ export default function AnalysisResult({ result, loading }: Props) {
   useEffect(() => {
     if (result) {
       setAnimatedProb(0);
-      const target = result.probability;
+      const target = Number.isFinite(result.probability) ? result.probability : 0;
       const duration = 800;
       const start = Date.now();
       const tick = () => {
@@ -176,7 +176,9 @@ export default function AnalysisResult({ result, loading }: Props) {
       {/* Model version */}
       <div className="flex items-center gap-1.5">
         <span className="w-1.5 h-1.5 rounded-full bg-success" />
-        <span className="text-[10px] text-on-surface-variant font-mono-code">{result.modelVersion}</span>
+        <span className="text-[10px] text-on-surface-variant font-mono-code">
+          {result.modelVersion || "unknown-model"}
+        </span>
       </div>
 
       {/* Flags */}
