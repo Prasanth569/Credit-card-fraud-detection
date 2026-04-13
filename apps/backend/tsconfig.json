@@ -6,10 +6,13 @@
     "outDir": "./dist",
     "esModuleInterop": true,
     "strict": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
       "@enums/*": ["src/c-types/enums/*"],
       "@schema/*": ["src/c-types/schemas/*"]
     }
-  }
+  },
+  "exclude": ["node_modules", "dist", "scratch"]
 }

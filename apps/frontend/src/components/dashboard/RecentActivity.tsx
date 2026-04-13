@@ -13,18 +13,19 @@ function DecisionBadge({ decision }: { decision: string }) {
 }
 
 function ProbBar({ probability }: { probability: number }) {
+  const safeProbability = Number.isFinite(probability) ? probability : 0;
   const color =
-    probability > 0.7 ? "bg-danger" : probability > 0.3 ? "bg-warning" : "bg-success";
+    safeProbability > 0.7 ? "bg-danger" : safeProbability > 0.3 ? "bg-warning" : "bg-success";
   return (
     <div className="flex items-center gap-2">
       <div className="prob-bar-track w-14">
         <div
           className={`h-full ${color} rounded-full transition-all duration-500`}
-          style={{ width: `${Math.round(probability * 100)}%` }}
+          style={{ width: `${Math.round(safeProbability * 100)}%` }}
         />
       </div>
       <span className="text-xs font-mono-code font-medium text-on-surface-variant">
-        {probability.toFixed(2)}
+        {safeProbability.toFixed(2)}
       </span>
     </div>
   );
@@ -39,8 +40,14 @@ export default function RecentActivity({ refreshKey }: Props) {
     try {
       setError(null);
       const data = await getTransactions({ limit: 8 });
-      setTransactions(data.items);
+      const items = Array.isArray(data?.items)
+        ? data.items
+        : Array.isArray(data)
+        ? data
+        : [];
+      setTransactions(items);
     } catch {
+      setTransactions([]);
       setError("Failed to load transactions");
     } finally {
       setLoading(false);
@@ -58,6 +65,17 @@ export default function RecentActivity({ refreshKey }: Props) {
       minute: "2-digit",
       second: "2-digit",
     });
+
+  const getDecision = (decision?: string) => {
+    if (
+      decision === ENUMS.Common.Decision.ALLOW ||
+      decision === ENUMS.Common.Decision.BLOCK ||
+      decision === ENUMS.Common.Decision.FLAG
+    ) {
+      return decision;
+    }
+    return ENUMS.Common.Decision.FLAG;
+  };
 
   return (
     <div className="card overflow-hidden animate-fade-in">
@@ -116,12 +134,12 @@ export default function RecentActivity({ refreshKey }: Props) {
                 >
                   <td className="px-6 py-3.5">
                     <span className="font-mono-code text-xs text-on-surface-variant group-hover:text-primary transition-colors">
-                      #{txn.txnId}
+                      #{txn.txnId ?? "N/A"}
                     </span>
                   </td>
                   <td className="px-6 py-3.5">
                     <span className="font-bold text-sm text-on-surface">
-                      ${(txn.amount || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      ${Number(txn.amount ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                     </span>
                   </td>
                   <td className="px-6 py-3.5">
@@ -130,10 +148,10 @@ export default function RecentActivity({ refreshKey }: Props) {
                     </span>
                   </td>
                   <td className="px-6 py-3.5">
-                    <ProbBar probability={txn.probability || 0} />
+                    <ProbBar probability={Number(txn.probability ?? 0)} />
                   </td>
                   <td className="px-6 py-3.5">
-                    <DecisionBadge decision={txn.decision} />
+                    <DecisionBadge decision={getDecision(txn.decision)} />
                   </td>
                 </tr>
               ))}

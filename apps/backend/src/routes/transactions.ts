@@ -121,66 +121,76 @@ export async function transactionRoutes(fastify: FastifyInstance) {
           });
         }
 
-        const results = [];
+        const startProcessingTime = Date.now();
+        
+        // 1. Preprocess all transactions
+        const preprocessedBatch = transactions.map(raw => {
+          const preprocessed = preprocessTransaction(raw);
+          const features = extractFeatures(preprocessed);
+          return { raw, features };
+        });
+
+        // 2. Request batch prediction from ML service
+        let mlPredictions: any[] = [];
+        try {
+          const { data } = await axios.post(`${ML_SERVICE_URL}/batch-predict`, {
+            transactions: preprocessedBatch.map(p => p.features)
+          });
+          mlPredictions = data.predictions;
+        } catch (error) {
+          fastify.log.error(error, "ML Batch Prediction failed, using fallback");
+          // Fallback calculation if ML service is down
+          mlPredictions = preprocessedBatch.map(p => ({
+            probability: Math.min(0.99, p.raw.amount > 2000 ? 0.65 : 0.1),
+            flags: []
+          }));
+        }
+
+        // 3. Evaluate decisions and prepare for bulk insert
         let fraudCount = 0;
         let legitCount = 0;
         let flagCount = 0;
+        
+        const transactionsToInsert = preprocessedBatch.map((p, index) => {
+          const mlResult = mlPredictions[index];
+          const probability = mlResult.probability;
+          const mlFlags = mlResult.flags || [];
+          
+          const { decision, riskLevel, flags } = evaluateDecision(
+            probability,
+            mlFlags,
+            p.raw.amount
+          );
 
-        for (const raw of transactions) {
-          try {
-            const preprocessed = preprocessTransaction(raw);
-            const features = extractFeatures(preprocessed);
+          if (decision === "BLOCK") fraudCount++;
+          else if (decision === "FLAG") flagCount++;
+          else legitCount++;
 
-            let probability = 0.1;
-            let mlFlags: string[] = [];
+          return {
+            amount: p.raw.amount,
+            time: p.features.time,
+            probability,
+            decision,
+            flags,
+            latencyMs: mlResult.latency_ms || 0,
+            modelVersion: "CLN-ARCH-v1.0.42",
+            features: p.features,
+            source: "csv",
+            riskLevel // Not in schema but useful for response
+          };
+        });
 
-            try {
-              const { data } = await axios.post(`${ML_SERVICE_URL}/predict`, {
-                amount: features.amount,
-                time: features.time,
-                v1: features.v1, v2: features.v2, v3: features.v3,
-                v4: features.v4, v5: features.v5, v6: features.v6,
-                v7: features.v7, v8: features.v8, v9: features.v9,
-                v10: features.v10, v11: features.v11, v12: features.v12,
-                v13: features.v13, v14: features.v14, v15: features.v15,
-                v16: features.v16, v17: features.v17, v18: features.v18,
-                v19: features.v19, v20: features.v20, v21: features.v21,
-                v22: features.v22, v23: features.v23, v24: features.v24,
-                v25: features.v25, v26: features.v26, v27: features.v27,
-                v28: features.v28,
-              });
-              probability = data.probability;
-              mlFlags = data.flags || [];
-            } catch {
-              probability = Math.min(0.99, raw.amount > 2000 ? 0.65 : 0.1);
-            }
+        // 4. Bulk insert into database
+        const insertedTxns = await Transaction.insertMany(transactionsToInsert.map(({riskLevel, ...rest}) => rest));
 
-            const { decision, riskLevel, flags } = evaluateDecision(
-              probability,
-              mlFlags,
-              raw.amount
-            );
-
-            const txn = (await Transaction.create({
-              amount: raw.amount,
-              time: features.time,
-              probability,
-              decision,
-              flags,
-              latencyMs: 0,
-              modelVersion: "CLN-ARCH-v1.0.42",
-              features,
-            })) as ITransaction;
-
-            if (decision === "BLOCK") fraudCount++;
-            else if (decision === "FLAG") flagCount++;
-            else legitCount++;
-
-            results.push({ txnId: txn.txnId, amount: raw.amount, probability, decision, riskLevel });
-          } catch {
-            results.push({ amount: raw.amount, error: "Processing failed" });
-          }
-        }
+        // 5. Build final results response
+        const results = transactionsToInsert.map((t, index) => ({
+          txnId: insertedTxns[index].txnId,
+          amount: t.amount,
+          probability: t.probability,
+          decision: t.decision,
+          riskLevel: t.riskLevel
+        }));
 
         return reply.send({
           processed: results.length,
@@ -188,6 +198,7 @@ export async function transactionRoutes(fastify: FastifyInstance) {
           legitCount,
           flagCount,
           fraudRate: parseFloat(((fraudCount / results.length) * 100).toFixed(2)),
+          totalLatencyMs: Date.now() - startProcessingTime,
           results,
         });
       } catch (error) {

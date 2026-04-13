@@ -10,11 +10,19 @@ export interface Alert {
   updatedAt: string;
 }
 
+export interface AlertsResponse {
+  items: Alert[];
+  total: number;
+  page: number;
+  totalPages: number;
+  hasNext: boolean;
+}
+
 export async function getAlerts(params?: {
   resolved?: boolean;
   limit?: number;
-}): Promise<Alert[]> {
-  const response = await api.get<Alert[]>("/alerts", { params });
+}): Promise<AlertsResponse> {
+  const response = await api.get<AlertsResponse>("/alerts", { params });
   return response.data;
 }
 
