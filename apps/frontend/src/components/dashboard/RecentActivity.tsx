@@ -59,7 +59,7 @@ export default function RecentActivity({ refreshKey }: Props) {
   }, [fetchData, refreshKey]);
 
   const formatTime = (iso: string) =>
-    new Date(iso).toLocaleTimeString("en-US", {
+    new Date(iso).toLocaleTimeString("en-IN", {
       hour12: false,
       hour: "2-digit",
       minute: "2-digit",
@@ -139,7 +139,7 @@ export default function RecentActivity({ refreshKey }: Props) {
                   </td>
                   <td className="px-6 py-3.5">
                     <span className="font-bold text-sm text-on-surface">
-                      ${Number(txn.amount ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      ₹{Number(txn.amount ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </span>
                   </td>
                   <td className="px-6 py-3.5">

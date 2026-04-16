@@ -44,7 +44,7 @@ interface Props {
 }
 
 function formatNumber(n: number) {
-  return n.toLocaleString("en-US");
+  return n.toLocaleString("en-IN");
 }
 
 export default function StatsGrid({ stats, loading }: Props) {

@@ -15,6 +15,7 @@ import {
 } from "firebase/auth";
 import type { User, UserCredential } from "firebase/auth";
 import { auth } from "../config/firebase";
+import { syncUser } from "../api/users";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,8 +49,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Listen to Firebase auth state changes — persists session on refresh
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
+      if (user) {
+        try {
+          await syncUser();
+        } catch (err) {
+          console.error("Failed to sync user with backend:", err);
+        }
+      }
       setLoading(false);
     });
     return unsubscribe;

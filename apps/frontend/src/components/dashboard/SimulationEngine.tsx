@@ -63,11 +63,11 @@ export default function SimulationEngine({ onResult, onLoading }: Props) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
-              Transaction Amount (USD)
+              Transaction Amount (INR)
             </label>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold text-sm">
-                $
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold text-sm">
+                ₹
               </span>
               <input
                 type="number"
@@ -75,7 +75,7 @@ export default function SimulationEngine({ onResult, onLoading }: Props) {
                 min="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="input-base pl-7 font-mono-code"
+                className="input-base pl-12 font-mono-code"
                 required
               />
             </div>

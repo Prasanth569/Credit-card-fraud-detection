@@ -57,7 +57,7 @@ export default function Analytics() {
   const trendData = logs.length > 0
     ? [...logs].sort((a, b) => new Date(a.trainedAt).getTime() - new Date(b.trainedAt).getTime())
         .map(l => ({
-          date: new Date(l.trainedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          date: new Date(l.trainedAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" }),
           accuracy: l.accuracy,
           f1: l.f1Score,
           version: l.modelVersion
@@ -238,7 +238,7 @@ export default function Analytics() {
               </div>
               <div className="m-1 rounded-xl bg-success-light p-4">
                 <p className="text-2xl font-black font-headline text-success">
-                  {confMatrix.tn.toLocaleString()}
+                  {confMatrix.tn.toLocaleString("en-IN")}
                 </p>
                 <p className="text-[9px] text-success font-bold mt-1">TN</p>
               </div>
