@@ -50,7 +50,7 @@ export default function Transactions() {
 
   const formatDate = (iso?: string) =>
     iso
-      ? new Date(iso).toLocaleString("en-US", {
+      ? new Date(iso).toLocaleString("en-IN", {
           month: "short",
           day: "numeric",
           hour: "2-digit",
@@ -155,7 +155,7 @@ export default function Transactions() {
                       #{txn.txnId}
                     </td>
                     <td className="px-5 py-3 font-bold text-sm text-on-surface">
-                      ${txn.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      ₹{txn.amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                     </td>
                     <td className="px-5 py-3 text-xs text-on-surface-variant">
                       {formatDate(txn.createdAt)}

@@ -6,7 +6,7 @@ from typing import List, Optional
 
 class TransactionInput(BaseModel):
     """Single transaction input for fraud prediction."""
-    amount: float = Field(..., description="Transaction amount in USD")
+    amount: float = Field(..., description="Transaction amount in INR")
     time: float = Field(..., description="Seconds elapsed since first transaction in dataset")
     v1: float = 0.0
     v2: float = 0.0

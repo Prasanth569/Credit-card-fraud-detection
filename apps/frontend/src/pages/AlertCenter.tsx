@@ -38,7 +38,7 @@ export default function AlertCenter() {
   }), [alerts]);
 
   const formatDate = (iso: string) =>
-    new Date(iso).toLocaleString("en-US", {
+    new Date(iso).toLocaleString("en-IN", {
       month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
     });
 

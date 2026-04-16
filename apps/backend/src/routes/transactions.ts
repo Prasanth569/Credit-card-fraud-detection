@@ -1,5 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { Transaction, ITransaction } from "../models/Transaction";
+import { BatchUpload } from "../models/BatchUpload";
 import { preprocessTransaction } from "../services/preprocess";
 import { extractFeatures } from "../services/feature";
 import { evaluateDecision } from "../services/decision";
@@ -183,7 +184,22 @@ export async function transactionRoutes(fastify: FastifyInstance) {
         // 4. Bulk insert into database
         const insertedTxns = await Transaction.insertMany(transactionsToInsert.map(({riskLevel, ...rest}) => rest));
 
-        // 5. Build final results response
+        // 5. Record in BatchUpload history
+        try {
+          const uid = (request as any).user?.uid || "manual-upload-fallback";
+          await BatchUpload.create({
+            fileName: `batch_upload_${Date.now()}.json`,
+            totalRecords: transactions.length,
+            processedRecords: transactionsToInsert.length,
+            fraudCount,
+            status: "completed",
+            uploadedBy: uid,
+          });
+        } catch (err) {
+          fastify.log.error(err, "Failed to record BatchUpload history");
+        }
+
+        // 6. Build final results response
         const results = transactionsToInsert.map((t, index) => ({
           txnId: insertedTxns[index].txnId,
           amount: t.amount,

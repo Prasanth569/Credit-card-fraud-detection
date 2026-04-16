@@ -5,27 +5,28 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Base ─────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
 
-body {
-  font-family: "Inter", sans-serif;
-  background-color: #F4F5F7;
-  color: #172B4D;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  body {
+    font-family: "Inter", sans-serif;
+    background-color: #F4F5F7;
+    color: #172B4D;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: "Manrope", sans-serif;
-  font-weight: 700;
-}
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Manrope", sans-serif;
+    font-weight: 700;
+  }
 
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 }
 
 /* ─── Material Symbols ──────────────────────────────────── */
@@ -37,89 +38,91 @@ input[type="number"]::-webkit-outer-spin-button {
   user-select: none;
 }
 
-/* ─── Custom utility classes (plain CSS, no @apply) ─────── */
-.font-headline { font-family: "Manrope", sans-serif; }
-.font-mono-code { font-family: "JetBrains Mono", "Fira Code", monospace; }
-.glass {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
+@layer components {
+  /* ─── Custom utility classes ─────── */
+  .font-headline { font-family: "Manrope", sans-serif; }
+  .font-mono-code { font-family: "JetBrains Mono", "Fira Code", monospace; }
+  .glass {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
 
-/* Input base */
-.input-base {
-  width: 100%;
-  background-color: #ffffff;
-  border: 1px solid #DFE1E6;
-  border-radius: 0.5rem;
-  padding: 0.625rem 1rem;
-  font-size: 0.875rem;
-  color: #172B4D;
-  transition: all 0.15s ease;
-  outline: none;
-}
-.input-base::placeholder { color: rgba(66, 82, 110, 0.5); }
-.input-base:focus {
-  border-color: #0052CC;
-  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.15);
-}
+  /* Input base */
+  .input-base {
+    width: 100%;
+    background-color: #ffffff;
+    border: 1px solid #DFE1E6;
+    border-radius: 0.5rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    color: #172B4D;
+    transition: all 0.15s ease;
+    outline: none;
+  }
+  .input-base::placeholder { color: rgba(66, 82, 110, 0.5); }
+  .input-base:focus {
+    border-color: #0052CC;
+    box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.15);
+  }
 
-/* Card */
-.card {
-  background-color: #ffffff;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(223, 225, 230, 0.5);
-  box-shadow: 0 1px 3px rgba(9, 30, 66, 0.13), 0 0 0 1px rgba(9, 30, 66, 0.08);
-}
+  /* Card */
+  .card {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(223, 225, 230, 0.5);
+    box-shadow: 0 1px 3px rgba(9, 30, 66, 0.13), 0 0 0 1px rgba(9, 30, 66, 0.08);
+  }
 
-/* Decision badges */
-.badge-allow {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.125rem 0.625rem;
-  border-radius: 9999px;
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background-color: #E3FCEF;
-  color: #00875A;
-  border: 1px solid rgba(0, 135, 90, 0.2);
-}
+  /* Decision badges */
+  .badge-allow {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: #E3FCEF;
+    color: #00875A;
+    border: 1px solid rgba(0, 135, 90, 0.2);
+  }
 
-.badge-block {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.125rem 0.625rem;
-  border-radius: 9999px;
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background-color: #FFEBE6;
-  color: #DE350B;
-  border: 1px solid rgba(222, 53, 11, 0.2);
-}
+  .badge-block {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: #FFEBE6;
+    color: #DE350B;
+    border: 1px solid rgba(222, 53, 11, 0.2);
+  }
 
-.badge-flag {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.125rem 0.625rem;
-  border-radius: 9999px;
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background-color: #FFFAE6;
-  color: #FF991F;
-  border: 1px solid rgba(255, 153, 31, 0.2);
-}
+  .badge-flag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: #FFFAE6;
+    color: #FF991F;
+    border: 1px solid rgba(255, 153, 31, 0.2);
+  }
 
-/* Probability track */
-.prob-bar-track {
-  height: 0.375rem;
-  background-color: #EBECF0;
-  border-radius: 9999px;
-  overflow: hidden;
+  /* Probability track */
+  .prob-bar-track {
+    height: 0.375rem;
+    background-color: #EBECF0;
+    border-radius: 9999px;
+    overflow: hidden;
+  }
 }
 
 /* Scrollbar */

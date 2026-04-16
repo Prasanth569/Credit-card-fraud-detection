@@ -14,7 +14,7 @@ export default function StatusBar() {
   }, []);
 
   const now = new Date();
-  const timeStr = now.toLocaleTimeString("en-US", { hour12: false });
+  const timeStr = now.toLocaleTimeString("en-IN", { hour12: false });
 
   return (
     <footer
@@ -41,7 +41,7 @@ export default function StatusBar() {
 
         {/* Live transaction counter */}
         <span className="hidden sm:flex items-center gap-1.5 text-on-surface-variant/70">
-          Processed: {(12450 + tick * 2).toLocaleString()} txns
+          Processed: {(12450 + tick * 2).toLocaleString("en-IN")} txns
         </span>
       </div>
 

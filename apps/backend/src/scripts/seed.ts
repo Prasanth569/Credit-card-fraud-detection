@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import { Transaction } from "../models/Transaction";
 import { ModelLog } from "../models/ModelLog";
+import { User } from "../models/User";
+import { BatchUpload } from "../models/BatchUpload";
 import { connectDB } from "../config/db";
 
 async function seed() {
@@ -12,6 +14,18 @@ async function seed() {
     // Clear existing data to avoid duplicates
     await Transaction.deleteMany({ source: "simulation" });
     await ModelLog.deleteMany({});
+    await User.deleteMany({ email: "admin@example.com" });
+    await BatchUpload.deleteMany({ uploadedBy: "mock-admin-uid" });
+
+    // 1. Seed Mock Admin User
+    const adminUser = await User.create({
+        firebaseUid: "mock-admin-uid",
+        name: "Demo Admin",
+        email: "admin@example.com",
+        role: "admin",
+        lastLogin: new Date(),
+    });
+    console.log("Inserted mock admin user.");
 
     const transactions = [];
     const now = new Date();
@@ -72,6 +86,31 @@ async function seed() {
 
     await ModelLog.insertMany(modelLogs);
     console.log(`Inserted ${modelLogs.length} model logs.`);
+
+    // 4. Seed Mock Batch Uploads
+    const batchUploads = [
+        {
+            fileName: "q1_transactions_final.csv",
+            totalRecords: 500,
+            processedRecords: 500,
+            fraudCount: 12,
+            status: "completed",
+            uploadedBy: "mock-admin-uid",
+            createdAt: new Date(now.getTime() - 2 * 24 * 3600000),
+        },
+        {
+            fileName: "internal_test_batch_04.json",
+            totalRecords: 120,
+            processedRecords: 120,
+            fraudCount: 3,
+            status: "completed",
+            uploadedBy: "mock-admin-uid",
+            createdAt: new Date(now.getTime() - 5 * 24 * 3600000),
+        }
+    ];
+
+    await BatchUpload.insertMany(batchUploads);
+    console.log(`Inserted ${batchUploads.length} batch upload history records.`);
 
     console.log("Database seeded successfully! 🚀");
     process.exit(0);
