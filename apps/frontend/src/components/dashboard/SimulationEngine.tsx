@@ -1,34 +1,40 @@
 import { useState } from "react";
-import { predictTransaction, type PredictionResult } from "../../api/predict";
+import { predictTransaction, type PredictionResult, type ModelType } from "../../api/predict";
 
 interface Props {
   onResult: (result: PredictionResult) => void;
   onLoading: (loading: boolean) => void;
 }
 
-// Generate random IP for simulation
 function randomIp() {
   return `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
 }
 
+const MODEL_OPTIONS: { id: ModelType; label: string; sublabel: string; icon: string }[] = [
+  { id: "aht",    label: "AHT",          sublabel: "Hoeffding Tree",  icon: "account_tree" },
+  { id: "rnn",    label: "RNN",          sublabel: "LSTM",            icon: "psychology" },
+  { id: "hybrid", label: "AHT + RNN",    sublabel: "Hybrid ✦",       icon: "auto_awesome" },
+];
+
 export default function SimulationEngine({ onResult, onLoading }: Props) {
-  const [amount, setAmount] = useState("120.00");
-  const [time, setTime] = useState("86400");
-  const [ipAddress] = useState(randomIp());
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [amount, setAmount]         = useState("120.00");
+  const [time, setTime]             = useState("86400");
+  const [selectedModel, setSelectedModel] = useState<ModelType>("hybrid");
+  const [ipAddress]                 = useState(randomIp);
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     onLoading(true);
-
     try {
       const result = await predictTransaction({
         amount: parseFloat(amount),
         time: parseFloat(time),
         ipAddress,
+        model: selectedModel,
       });
       onResult(result);
     } catch (err: any) {
@@ -40,7 +46,6 @@ export default function SimulationEngine({ onResult, onLoading }: Props) {
     }
   };
 
-  // Randomize a suspicious transaction
   const loadSuspicious = () => {
     setAmount((2000 + Math.random() * 8000).toFixed(2));
     setTime(String(Math.floor(Math.random() * 172800)));
@@ -49,7 +54,7 @@ export default function SimulationEngine({ onResult, onLoading }: Props) {
   return (
     <div className="card p-6 h-full animate-fade-in">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-5">
         <h2 className="text-lg font-black font-headline text-on-surface">
           Simulation Engine
         </h2>
@@ -59,7 +64,58 @@ export default function SimulationEngine({ onResult, onLoading }: Props) {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Amount + Time row */}
+        {/* Model Selector — premium segmented control */}
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+            Prediction Model
+          </label>
+          <div
+            className="grid grid-cols-3 gap-1.5 p-1 rounded-xl"
+            style={{ background: "var(--color-neutral, #F4F5F7)" }}
+          >
+            {MODEL_OPTIONS.map((opt) => {
+              const isActive = selectedModel === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setSelectedModel(opt.id)}
+                  disabled={loading}
+                  className={[
+                    "relative flex flex-col items-center gap-0.5 py-2.5 px-2 rounded-lg text-center",
+                    "transition-all duration-200 select-none",
+                    isActive
+                      ? "bg-white shadow-md text-primary"
+                      : "text-on-surface-variant hover:bg-white/60 hover:text-on-surface",
+                  ].join(" ")}
+                  style={
+                    isActive
+                      ? { boxShadow: "0 2px 8px rgba(0,82,204,0.18)" }
+                      : {}
+                  }
+                >
+                  <span
+                    className="material-symbols-outlined text-[18px] leading-none"
+                    style={
+                      isActive
+                        ? { fontVariationSettings: "'FILL' 1,'wght' 600,'GRAD' 0,'opsz' 24" }
+                        : {}
+                    }
+                  >
+                    {opt.icon}
+                  </span>
+                  <span className="text-[11px] font-black leading-none">{opt.label}</span>
+                  <span className="text-[9px] font-medium opacity-70 leading-none">{opt.sublabel}</span>
+                  {isActive && (
+                    <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Amount + Time */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
@@ -80,7 +136,6 @@ export default function SimulationEngine({ onResult, onLoading }: Props) {
               />
             </div>
           </div>
-
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
               Time Elapsed (seconds)
@@ -101,9 +156,7 @@ export default function SimulationEngine({ onResult, onLoading }: Props) {
             <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
               Origin Metadata
             </span>
-            <span className="material-symbols-outlined text-on-surface-variant text-[16px]">
-              info
-            </span>
+            <span className="material-symbols-outlined text-on-surface-variant text-[16px]">info</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white rounded-lg px-3 py-2 text-xs font-mono-code text-on-surface-variant border border-outline-variant/30">
@@ -133,7 +186,6 @@ export default function SimulationEngine({ onResult, onLoading }: Props) {
           >
             🎲 Simulate Fraud
           </button>
-
           <button
             type="submit"
             disabled={loading}

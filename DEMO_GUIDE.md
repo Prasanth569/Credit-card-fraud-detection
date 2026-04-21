@@ -6,7 +6,7 @@ This guide provides a step-by-step walkthrough to run the full stack and showcas
 
 ## 🏗️ System Architecture
 The application consists of 4 core services working in sync:
-1.  **ML Service (Python/FastAPI)**: Performs real-time fraud scoring using a DWM+AHT adaptive ensemble.
+1.  **ML Service (Python/FastAPI)**: Performs real-time fraud scoring using an AHT + RNN (LSTM) Hybrid adaptive ensemble.
 2.  **Backend API (Node.js/Fastify)**: Orchestrates requests, manages data, and handles security.
 3.  **Worker (Node.js/BullMQ)**: Processes background tasks like model scoring and alert generation.
 4.  **Frontend (React/Vite)**: The interactive dashboard for real-time monitoring and analytics.
@@ -19,6 +19,15 @@ The application consists of 4 core services working in sync:
 
 ## 🛠️ Step 1: Startup Sequence
 Open 4 separate terminal windows and run the commands in this exact order:
+
+### 0. (First time only) Train the AHT + RNN Model
+```bash
+# From inside apps/ml-service/
+pip install -r requirements.txt
+python train_rnn.py
+```
+*Wait for "Training complete. All artifacts saved" — takes ~5–10 min on first run.*
+*Artifacts saved to: apps/ml-service/artifacts/*
 
 ### 1. ML Service (Port 8000)
 ```bash
