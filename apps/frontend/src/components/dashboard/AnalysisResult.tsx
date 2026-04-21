@@ -173,12 +173,27 @@ export default function AnalysisResult({ result, loading }: Props) {
         </div>
       </div>
 
-      {/* Model version */}
-      <div className="flex items-center gap-1.5">
-        <span className="w-1.5 h-1.5 rounded-full bg-success" />
-        <span className="text-[10px] text-on-surface-variant font-mono-code">
-          {result.modelVersion || "unknown-model"}
-        </span>
+      {/* Model version + model used */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-success" />
+          <span className="text-[10px] text-on-surface-variant font-mono-code">
+            {result.modelVersion || "unknown-model"}
+          </span>
+        </div>
+        {result.modelUsed && (() => {
+          const map: Record<string, { label: string; cls: string }> = {
+            aht:    { label: "AHT",         cls: "bg-[#E3FCEF] text-[#00875A]" },
+            rnn:    { label: "RNN · LSTM",  cls: "bg-[#EAE6FF] text-[#5243AA]" },
+            hybrid: { label: "AHT+RNN ✦",  cls: "bg-[#E6F2FF] text-[#0052CC]" },
+          };
+          const { label, cls } = map[result.modelUsed] ?? map["hybrid"];
+          return (
+            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${cls}`}>
+              {label}
+            </span>
+          );
+        })()}
       </div>
 
       {/* Flags */}

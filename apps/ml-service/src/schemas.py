@@ -1,7 +1,7 @@
 """Pydantic schemas for ML service request/response validation."""
 
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Literal, Dict, Any
 
 
 class TransactionInput(BaseModel):
@@ -38,14 +38,18 @@ class TransactionInput(BaseModel):
     v28: float = 0.0
 
 
+ModelType = Literal["aht", "rnn", "hybrid"]
+
+
 class PredictionResponse(BaseModel):
     """Prediction response from the model."""
     probability: float = Field(..., description="Fraud probability (0-1)")
     decision: str = Field(..., description="Decision: ALLOW, FLAG, or BLOCK")
     latency_ms: float = Field(..., description="Inference latency in milliseconds")
     model_version: str = Field(..., description="Active model version identifier")
+    model_used: str = Field(default="hybrid", description="Which sub-model produced this prediction")
     flags: List[str] = Field(default_factory=list, description="Warning flags from the model")
-    ensemble_weights: Optional[List[float]] = Field(None, description="Current DWM learner weights")
+    ensemble_weights: Optional[List[float]] = Field(None, description="Ensemble learner weights")
 
 
 class BatchInput(BaseModel):
@@ -62,15 +66,35 @@ class BatchResponse(BaseModel):
     avg_latency_ms: float
 
 
+class PerModelMetrics(BaseModel):
+    """Performance metrics for a single model."""
+    accuracy: float
+    precision: float
+    recall: float
+    f1_score: float
+    tp: int = 0
+    fp: int = 0
+    tn: int = 0
+    fn: int = 0
+    total_predictions: int = 0
+
+
+class AllModelMetrics(BaseModel):
+    """Per-model metrics for all three models."""
+    aht: PerModelMetrics
+    rnn: PerModelMetrics
+    hybrid: PerModelMetrics
+
+
 class ModelMetrics(BaseModel):
-    """Model performance metrics."""
+    """Legacy single-model performance metrics (kept for backward compatibility)."""
     accuracy: float
     precision: float
     recall: float
     f1_score: float
     total_predictions: int
-    concept_drift_detected: bool
-    num_active_learners: int
+    concept_drift_detected: bool = False
+    num_active_learners: int = 1
 
 
 class HealthResponse(BaseModel):
@@ -79,3 +103,5 @@ class HealthResponse(BaseModel):
     model_loaded: bool
     model_version: str
     uptime_seconds: float
+    rnn_loaded: bool = False
+    aht_loaded: bool = False

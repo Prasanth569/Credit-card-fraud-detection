@@ -46,7 +46,7 @@ export default function Dashboard() {
         <div>
           <h1 className="text-2xl font-black font-headline text-on-surface">Dashboard</h1>
           <p className="text-sm text-on-surface-variant mt-0.5">
-            Real-time fraud detection overview — DWM + AHT Ensemble
+            Real-time fraud detection overview — AHT + RNN Hybrid Ensemble
           </p>
         </div>
         <button

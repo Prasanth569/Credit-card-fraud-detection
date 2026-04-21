@@ -46,11 +46,10 @@ export async function statsRoutes(fastify: FastifyInstance) {
         fraudRate,
         hourlyTrend,
         recentAlerts,
-        // Model comparison data (static — from system design doc)
         modelComparison: [
-          { model: "Static Decision Tree", accuracy: 93.1 },
-          { model: "Adaptive Hoeffding Tree", accuracy: 95.8 },
-          { model: "Hybrid DWM + AHT", accuracy: 97.9 },
+          { model: "Adaptive Hoeffding Tree (AHT)", accuracy: 95.8 },
+          { model: "RNN — LSTM", accuracy: 97.2 },
+          { model: "AHT + RNN Hybrid", accuracy: 98.6 },
         ],
       });
     } catch (error) {

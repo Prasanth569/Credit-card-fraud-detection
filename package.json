@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "ml": "cd apps/ml-service && python -m src.main"
+    "ml":       "cd apps/ml-service && .\\venv\\Scripts\\python -m src.main",
+    "ml-311":   "cd apps/ml-service && .\\venv\\Scripts\\python -m uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload",
+    "ml-train": "cd apps/ml-service && .\\venv\\Scripts\\python train_rnn.py"
   },
   "keywords": [],
   "author": "",

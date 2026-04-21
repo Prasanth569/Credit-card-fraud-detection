@@ -8,3 +8,13 @@ __pycache__
 .vscode
 apps/ml-service/data/
 *.csv
+
+# Python virtual environment
+venv/
+.venv/
+env/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
