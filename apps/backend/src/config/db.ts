@@ -6,8 +6,13 @@ export const connectDB = async (retryCount = 5) => {
   for (let i = 0; i < retryCount; i++) {
     try {
       console.log(`Connecting to MongoDB (attempt ${i + 1}/${retryCount})...`);
-      console.log(process.env.MONGO_URI);
-      await mongoose.connect(process.env.MONGO_URI as string, {
+      const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
+
+      if (!uri) {
+        throw new Error("MongoDB connection string (MONGO_URI or MONGODB_URI) is missing.");
+      }
+
+      await mongoose.connect(uri, {
         serverSelectionTimeoutMS: 5000,
       });
 
