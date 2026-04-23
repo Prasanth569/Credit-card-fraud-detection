@@ -43,7 +43,14 @@ export async function authMiddleware(
   }
 
   try {
-    const decodedToken = await adminAuth.verifyIdToken(token);
+    const auth = adminAuth;
+    if (!auth) {
+      // If Firebase is not configured, we allow requests for now but log it
+      // Alternatively, you could return an error here
+      console.warn("⚠️ Auth skipped: adminAuth is not initialized.");
+      return;
+    }
+    const decodedToken = await auth.verifyIdToken(token);
 
     request.user = {
       uid: decodedToken.uid,
