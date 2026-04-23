@@ -392,7 +392,7 @@ export default function Analytics() {
               <BarChart data={modelComparison} barCategoryGap="25%">
                 <CartesianGrid strokeDasharray="3 3" stroke="#EBECF0" vertical={false} />
                 <XAxis dataKey="model" tick={{ fontSize: 10, fill: "#42526E", fontWeight: 700 }} />
-                <YAxis domain={[88, 100]} tick={{ fontSize: 10, fill: "#42526E" }} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "#42526E" }} />
                 <Tooltip
                   contentStyle={{ borderRadius: "8px", border: "1px solid #DFE1E6", fontSize: "12px" }}
                   formatter={(v: any) => [`${v}%`]}
@@ -414,7 +414,7 @@ export default function Analytics() {
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={modelComparison} layout="vertical" barCategoryGap="30%">
                 <CartesianGrid strokeDasharray="3 3" stroke="#EBECF0" />
-                <XAxis type="number" domain={[90, 100]} tick={{ fontSize: 10, fill: "#42526E" }} />
+                <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 10, fill: "#42526E" }} />
                 <YAxis type="category" dataKey="model" tick={{ fontSize: 10, fill: "#42526E" }} width={90} />
                 <Tooltip
                   contentStyle={{ borderRadius: "8px", border: "1px solid #DFE1E6", fontSize: "12px" }}
