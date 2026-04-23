@@ -8,9 +8,6 @@ export default defineConfig({
       babel: {
         plugins: [['babel-plugin-react-compiler']]
       }
-    })
-  ],
-  resolve: {
-    tsconfigPaths: true
-  }
+    } as any)
+  ]
 })
